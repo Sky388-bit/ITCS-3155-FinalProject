@@ -11,4 +11,5 @@ class Customer(Base):
     email = Column(String(100))
     phone = Column(String(15))
     address = Column(String(100))
+    orders = relationship("Order", back_populates="customer")
     order_history = relationship("OrderHistory", back_populates="customer")
