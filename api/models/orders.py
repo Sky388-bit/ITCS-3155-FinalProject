@@ -9,7 +9,10 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     customer_name = Column(String(100))
+    tracking_number = Column(String(100), nullable=False)
+    order_status = Column(String(100), nullable=False)
     order_date = Column(DATETIME, nullable=False, server_default=str(datetime.now()))
     description = Column(String(300))
+    total_price = Column(DECIMAL(10,2))
 
     order_details = relationship("OrderDetail", back_populates="order")
