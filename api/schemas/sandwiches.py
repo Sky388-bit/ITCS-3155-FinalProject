@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class SandwichBase(BaseModel):
@@ -20,5 +20,4 @@ class SandwichUpdate(BaseModel):
 class Sandwich(SandwichBase):
     id: int
 
-    class ConfigDict:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
