@@ -7,4 +7,4 @@ class Promotion(Base):
     __tablename__ = 'promotions'
     id = Column(Integer, primary_key=True)
     promotion_discount = Column(Integer, nullable=False)
-    promotion_name = Column(String, nullable=False)
+    promotion_name = Column(String(50), nullable=False)
