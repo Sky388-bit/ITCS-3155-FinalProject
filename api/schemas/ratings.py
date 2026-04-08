@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class RatingBase(BaseModel):
     customer_id: int
+    customer_name: str
     review_text: str
     rating: int
 
@@ -16,6 +17,7 @@ class RatingsCreate(RatingBase):
 
 class RatingsUpdate(BaseModel):
     customer_id: int
+    customer_name: str
     review_text: str
     rating: int
 
