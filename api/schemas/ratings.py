@@ -5,9 +5,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class RatingBase(BaseModel):
-    customer_id: Optional[int] = None
-    rating: Optional[int] = None
-    review_text: Optional[str] = None
+    customer_id: int
+    review_text: str
+    rating: int
 
 
 class RatingsCreate(RatingBase):
@@ -15,9 +15,9 @@ class RatingsCreate(RatingBase):
 
 
 class RatingsUpdate(BaseModel):
-    customer_id: Optional[int] = None
-    rating: Optional[int] = None
-    review_text: Optional[str] = None
+    customer_id: int
+    review_text: str
+    rating: int
 
 
 class Ratings(RatingBase):

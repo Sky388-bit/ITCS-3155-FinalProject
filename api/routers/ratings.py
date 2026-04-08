@@ -9,6 +9,10 @@ router = APIRouter(
     prefix="/ratings"
 )
 
+@router.post("/", response_model=schema.Ratings)
+def create(request: schema.RatingsCreate, db: Session = Depends(get_db)):
+    return controller.create(db=db, request=request)
+
 
 @router.get("/", response_model=list[schema.Ratings])
 def read_all(db: Session = Depends(get_db)):
@@ -28,3 +32,4 @@ def update(item_id: int, request: schema.Ratings, db: Session = Depends(get_db))
 @router.delete("/{item_id}")
 def delete(item_id: int, db: Session = Depends(get_db)):
     return controller.delete(db=db, item_id=item_id)
+

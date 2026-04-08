@@ -5,10 +5,11 @@ from sqlalchemy.exc import SQLAlchemyError
 
 
 def create(db: Session, request):
-    new_item = model.Rating(
+    new_item = model.Ratings(
         customer_id=request.customer_id,
         review_text=request.review_text,
         rating=request.rating
+
     )
 
     try:
@@ -24,7 +25,7 @@ def create(db: Session, request):
 
 def read_all(db: Session):
     try:
-        result = db.query(model.Rating).all()
+        result = db.query(model.Ratings).all()
     except SQLAlchemyError as e:
         error = str(e.__dict__['orig'])
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
@@ -33,7 +34,7 @@ def read_all(db: Session):
 
 def read_one(db: Session, item_id):
     try:
-        item = db.query(model.Rating).filter(model.Rating.id == item_id).first()
+        item = db.query(model.Ratings).filter(model.Ratings.id == item_id).first()
         if not item:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Id not found!")
     except SQLAlchemyError as e:
@@ -44,7 +45,7 @@ def read_one(db: Session, item_id):
 
 def update(db: Session, item_id, request):
     try:
-        item = db.query(model.Rating).filter(model.Rating.id == item_id)
+        item = db.query(model.Ratings).filter(model.Ratings.id == item_id)
         if not item.first():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Id not found!")
         update_data = request.dict(exclude_unset=True)
@@ -58,7 +59,7 @@ def update(db: Session, item_id, request):
 
 def delete(db: Session, item_id):
     try:
-        item = db.query(model.Rating).filter(model.Rating.id == item_id)
+        item = db.query(model.Ratings).filter(model.Ratings.id == item_id)
         if not item.first():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Id not found!")
         item.delete(synchronize_session=False)

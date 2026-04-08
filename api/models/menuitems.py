@@ -8,7 +8,7 @@ class MenuItems(Base):
     id = Column(Integer, primary_key=True)
     dish_name = Column(String(20))
     dish_description = Column(String(20))
-    ingredients = relationship("Ingredients", back_populates="menu")
+    #ingredients = relationship("Ingredients", back_populates="menu")
     price = Column(DECIMAL(10,2))
     calories = Column(Integer)
     category = Column(String(20))
