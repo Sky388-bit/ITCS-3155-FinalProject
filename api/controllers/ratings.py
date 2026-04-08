@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 def create(db: Session, request):
     new_item = model.Ratings(
         customer_id=request.customer_id,
+        customer_name=request.customer_name,
         review_text=request.review_text,
         rating=request.rating
 
