@@ -4,25 +4,25 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 
-class RatingBase(BaseModel):
-    customer_id: int
-    customer_name: str
+class RatingsBase(BaseModel):
+    customers_id: int
+    customers_name: str
     review_text: str
     rating: int
 
 
-class RatingsCreate(RatingBase):
+class RatingsCreate(RatingsBase):
     pass
 
 
 class RatingsUpdate(BaseModel):
-    customer_id: int
-    customer_name: str
+    customers_id: int
+    customers_name: str
     review_text: str
     rating: int
 
 
-class Ratings(RatingBase):
+class Ratings(RatingsBase):
     id: int
     rating_date: Optional[datetime] = None
 

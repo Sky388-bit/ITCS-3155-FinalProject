@@ -5,27 +5,27 @@ from ..schemas import customers as schema
 from ..dependencies.database import engine, get_db
 
 router = APIRouter(
-    tags=['Customer'],
+    tags=['Customers'],
     prefix="/customers"
 )
 
-@router.post("/", response_model=schema.Customer)
-def create(request: schema.CustomerCreate, db: Session = Depends(get_db)):
+@router.post("/", response_model=schema.Customers)
+def create(request: schema.CustomersCreate, db: Session = Depends(get_db)):
     return controller.create(db=db, request=request)
 
 
-@router.get("/", response_model=list[schema.Customer])
+@router.get("/", response_model=list[schema.Customers])
 def read_all(db: Session = Depends(get_db)):
     return controller.read_all(db)
 
 
-@router.get("/{item_id}", response_model=schema.Customer)
+@router.get("/{item_id}", response_model=schema.Customers)
 def read_one(item_id: int, db: Session = Depends(get_db)):
     return controller.read_one(db, item_id=item_id)
 
 
-@router.put("/{item_id}", response_model=schema.Customer)
-def update(item_id: int, request: schema.Customer, db: Session = Depends(get_db)):
+@router.put("/{item_id}", response_model=schema.Customers)
+def update(item_id: int, request: schema.Customers, db: Session = Depends(get_db)):
     return controller.update(db=db, request=request, item_id=item_id)
 
 

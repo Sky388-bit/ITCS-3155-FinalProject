@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
-class CustomerBase(BaseModel):
+class CustomersBase(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[str] = None
@@ -10,11 +10,11 @@ class CustomerBase(BaseModel):
     address: Optional[str] = None
 
 
-class CustomerCreate(CustomerBase):
+class CustomersCreate(CustomersBase):
     pass
 
 
-class CustomerUpdate(BaseModel):
+class CustomersUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[str] = None
@@ -22,7 +22,7 @@ class CustomerUpdate(BaseModel):
     address: Optional[str] = None
 
 
-class Customer(CustomerBase):
+class Customers(CustomersBase):
     id: int
 
     model_config = ConfigDict(from_attributes=True)

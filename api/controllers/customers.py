@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 
 def create(db: Session, request):
-    new_item = model.Customer(
+    new_item = model.Customers(
         first_name=request.first_name,
         last_name=request.last_name,
         email=request.email,
