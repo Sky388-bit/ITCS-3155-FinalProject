@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from ..dependencies.database import Base
 
-class Promotion(Base):
+class Promotions(Base):
     __tablename__ = 'promotions'
     id = Column(Integer, primary_key=True)
-    promotion_discount = Column(Integer, nullable=False)
-    promotion_name = Column(String(50), nullable=False)
+    promotions_discount = Column(Integer, nullable=False)
+    promotions_name = Column(String(50), nullable=False)
