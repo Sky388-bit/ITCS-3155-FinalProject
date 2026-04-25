@@ -8,5 +8,7 @@ class PaymentInfo(Base):
     id = Column(Integer, primary_key=True)
     transaction_status = Column(String(20))
     payment_type = Column(String(20))
-    order_detail_id = Column(Integer, ForeignKey("order_details.id"))
-    order_details = relationship("OrderDetail", back_populates="payment_details")
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    amount = Column(DECIMAL(10,2), nullable=False)
+
+    order = relationship("Order", back_populates="payment_details")
