@@ -16,6 +16,8 @@ class Order(Base):
     description = Column(String(300))
     total_price = Column(DECIMAL(10,2))
     order_type = Column(String(100), nullable=False)
+    customers_email = Column(String(100))
+    customers_phone = Column(String(15))
 
     customers = relationship("Customers", back_populates="orders")
     order_details = relationship("OrderDetail", back_populates="order")
