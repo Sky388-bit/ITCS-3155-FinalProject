@@ -3,13 +3,16 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from ..dependencies.database import Base
 
-class MenuItems(Base):
-    __tablename__ = 'menu_items'
+class Menu(Base):
+    __tablename__ = 'menu'
     id = Column(Integer, primary_key=True)
     dish_name = Column(String(20))
     dish_description = Column(String(20))
-    #ingredients = relationship("Ingredients", back_populates="menu")
+    #recipes = relationship("Recipe", back_populates="menu")
     price = Column(DECIMAL(10,2))
     calories = Column(Integer)
     category = Column(String(20))
+
+    order_details = relationship("OrderDetail", back_populates="menu")
+    recipes = relationship("Recipe", back_populates="menu")
 
