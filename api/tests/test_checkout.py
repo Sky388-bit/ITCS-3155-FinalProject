@@ -24,13 +24,13 @@ def test_create_guest_order(db_session):
         "tracking_number": "TRK-001"
     }
 
-    # Create the object (matches the project pattern)
+
     order_object = order_model.Order(**order_data)
 
-    # Call the controller
+
     created_order = order_controller.create(db_session, order_object)
 
-    # Assertions
+
     assert created_order is not None
     assert created_order.customers_email == "guest@example.com"
     assert created_order.order_type == "Takeout"
@@ -46,10 +46,9 @@ def test_create_payment(db_session):
 
     payment_object = payment_model.PaymentInfo(**payment_data)
 
-    # Call the payment controller
+
     created_payment = payment_controller.create(db_session, payment_object)
 
-    # Assertions
     assert created_payment is not None
     assert created_payment.amount == 10.00
     assert created_payment.transaction_status == "Success"
