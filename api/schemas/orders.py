@@ -12,6 +12,9 @@ class OrderBase(BaseModel):
     order_status: str
     description: Optional[str] = None
     total_price: Optional[float] = None
+    order_type: Optional[str] = None
+    customers_email: Optional[str] = None
+    customers_phone: Optional[str] = None
 
 
 class OrderCreate(OrderBase):
@@ -25,6 +28,9 @@ class OrderUpdate(BaseModel):
     order_status: Optional[str] = None
     description: Optional[str] = None
     total_price: Optional[float] = None
+    order_type: Optional[str] = None
+    customers_email: Optional[str] = None
+    customers_phone: Optional[str] = None
 
 
 class Order(OrderBase):
