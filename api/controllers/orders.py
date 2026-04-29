@@ -1,8 +1,11 @@
+import uuid
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Response, Depends
 from ..models import orders as model
 from sqlalchemy.exc import SQLAlchemyError
 
+def generate_tracking_number():
+    return f"TRK-{uuid.uuid4().hex[:8].upper()}"
 
 def create(db: Session, request):
     new_item = model.Order(
@@ -10,10 +13,10 @@ def create(db: Session, request):
         customers_name=request.customers_name,
         customers_email=request.customers_email,
         customers_phone=request.customers_phone,
-        tracking_number=request.tracking_number,
-        order_status=request.order_status,
+        tracking_number=generate_tracking_number(),
+        order_status=request.order_status or "Placed",
         description=request.description,
-        total_price=request.total_price,
+        total_price=request.total_price or 0.0,
         order_type=request.order_type,
     )
 

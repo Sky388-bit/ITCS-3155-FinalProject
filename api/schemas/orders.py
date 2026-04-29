@@ -8,8 +8,8 @@ from .order_details import OrderDetail
 class OrderBase(BaseModel):
     customers_id: Optional[int] = None
     customers_name: Optional[str] = None
-    tracking_number: str
-    order_status: str
+    tracking_number: Optional[str] = None
+    order_status: Optional[str] = None
     description: Optional[str] = None
     total_price: Optional[float] = None
     order_type: Optional[str] = None
