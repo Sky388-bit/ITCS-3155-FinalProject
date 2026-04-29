@@ -1,10 +1,21 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Response, Depends
-from ..models import order_details as model
+from ..models import order_details as model, recipes, resources, menu, orders
 from sqlalchemy.exc import SQLAlchemyError
 
 
 def create(db: Session, request):
+    # Find and deduct resources if possible
+    recipe_items = db.query(recipes.Recipe).filter(recipes.Recipe.menu_id == request.menu_id).all()
+    for item in recipe_items:
+        resource = db.query(resources.Resource).filter(resources.Resource.id == item.resource_id).first()
+        if not resource:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Id not found!")
+        if resource.amount < item.amount * request.amount:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Not enough {resource.item} in stock.")
+        else:
+            resource.amount -= item.amount * request.amount
+
     new_item = model.OrderDetail(
         order_id=request.order_id,
         menu_id=request.menu_id,
@@ -13,6 +24,11 @@ def create(db: Session, request):
 
     try:
         db.add(new_item)
+        # Update Order Total
+        dish = db.query(menu.Menu).filter(menu.Menu.id == request.menu_id).first()
+        order = db.query(orders.Order).filter(orders.Order.id == request.order_id).first()
+        if order and dish:
+            order.total_price = (order.total_price or 0) + (dish.price * request.amount)
         db.commit()
         db.refresh(new_item)
     except SQLAlchemyError as e:
