@@ -1,9 +1,13 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Response
-from ..models import payment_info as model
+from ..models import payment_info as model, orders
 from sqlalchemy.exc import SQLAlchemyError
 
 def create(db: Session, request):
+    order = db.query(orders.Order).filter(orders.Order.id == request.order_id).first()
+    if not order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
     new_payment_info = model.PaymentInfo(
         transaction_status=request.transaction_status,
         payment_type=request.payment_type,
@@ -13,6 +17,19 @@ def create(db: Session, request):
 
     try:
         db.add(new_payment_info)
+        # Find all past payments on the order and add them up
+        all_payments = db.query(model.PaymentInfo).filter(
+            model.PaymentInfo.order_id == request.order_id,
+            model.PaymentInfo.transaction_status == "Success",
+            model.PaymentInfo.id != new_payment_info.id,
+        ).all()
+        total_paid = sum(p.amount for p in all_payments)
+
+        current_amount = request.amount if request.transaction_status == "Success" else 0
+
+        order_price = db.query(orders.Order).filter(orders.Order.id == request.order_id).first()
+        if (total_paid + current_amount) >= order.total_price:
+            order.order_status = "Paid"
         db.commit()
         db.refresh(new_payment_info)
     except SQLAlchemyError as e:
