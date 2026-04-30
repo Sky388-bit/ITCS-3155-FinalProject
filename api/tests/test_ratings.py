@@ -16,8 +16,10 @@ def db_session(mocker):
 def test_create_ratings(db_session):
     # Create a sample ratings
     ratings_data = {
-        "customers_name": "Test",
-        "review_text": "Test rating",
+        "customers_name": "John Doe",
+        "customers_id": 1,
+        "menu_id": 1,
+        "review_text": "Test ratings",
         "rating": 5
     }
 
@@ -29,4 +31,4 @@ def test_create_ratings(db_session):
     # Assertions
     assert created_ratings is not None
     assert created_ratings.customers_name == "John Doe"
-    assert created_ratings.description == "Test ratings"
+    assert created_ratings.review_text == "Test ratings"
