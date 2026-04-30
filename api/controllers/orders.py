@@ -8,6 +8,13 @@ def generate_tracking_number():
     return f"TRK-{uuid.uuid4().hex[:8].upper()}"
 
 def create(db: Session, request):
+    if not request.customers_id and not (request.customers_name and request.customers_email and request.customers_phone):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Guest orders require a name, email, and phone number")
+
+    if request.order_type == "Delivery" and not request.description:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Delivery orders require an address in the description")
     new_item = model.Order(
         customers_id=request.customers_id,
         customers_name=request.customers_name,
