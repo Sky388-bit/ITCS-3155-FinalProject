@@ -1,12 +1,10 @@
 from datetime import datetime
 from typing import Optional
-
 from fastapi import APIRouter, Depends, FastAPI, status, Response
 from sqlalchemy.orm import Session
 from ..controllers import orders as controller
 from ..schemas import orders as schema
 from ..dependencies.database import engine, get_db
-from typing import Optional
 
 router = APIRouter(
     tags=['Orders'],
@@ -23,6 +21,13 @@ def create(request: schema.OrderCreate, db: Session = Depends(get_db)):
 def read_all(start_date: Optional[datetime] = None, end_date: Optional[datetime] = None, db: Session = Depends(get_db)):
     return controller.read_all(db, start_date=start_date, end_date=end_date)
 
+@router.get("/revenue/report")
+def get_revenue_report(menu_id: Optional[int] = None, start_date: Optional[datetime] = None,
+                       end_date: Optional[datetime] = None, db: Session = Depends(get_db)):
+    if menu_id:
+        return controller.get_item_revenue(db=db, menu_id=menu_id, start_date=start_date, end_date=end_date)
+    else:
+        return controller.get_total_revenue(db=db, start_date=start_date, end_date=end_date)
 
 @router.get("/{item_id}", response_model=schema.Order)
 def read_one(item_id: int, db: Session = Depends(get_db)):

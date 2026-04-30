@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Response, Depends
-from ..models import orders as model
+from ..models import orders as model, menu as menu_model, order_details as detail_model
 from sqlalchemy.exc import SQLAlchemyError
 
 def generate_tracking_number():
@@ -89,3 +89,44 @@ def delete(db: Session, item_id):
         error = str(e.__dict__['orig'])
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+def get_item_revenue(db: Session, menu_id: int =None, start_date=None, end_date=None):
+    try:
+        query = (db.query(detail_model.OrderDetail).join(model.Order).
+                filter(detail_model.OrderDetail.menu_id == menu_id))
+        if start_date:
+            query = query.filter(model.Order.order_date >= start_date)
+        if end_date:
+            query = query.filter(model.Order.order_date <= end_date)
+
+        details = query.all()
+        dish = db.query(menu_model.Menu).filter(menu_model.Menu.id == menu_id).first()
+
+        total_revenue = sum(d.amount * dish.price for d in details) if dish else 0.0
+        return {
+            "menu_item": dish.dish_name if dish else "Unknown",
+            "total_revenue": total_revenue,
+            "total_sold": sum(d.amount for d in details)
+        }
+    except SQLAlchemyError as e:
+        error = str(e.__dict__['orig'])
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
+
+def get_total_revenue(db: Session, start_date=None, end_date=None):
+    try:
+        query = db.query(model.Order)
+
+        if start_date:
+            query = query.filter(model.Order.order_date >= start_date)
+        if end_date:
+            query = query.filter(model.Order.order_date <= end_date)
+        order = query.all()
+        total_revenue = sum(order.total_price for order in order if order.total_price)
+
+        return {
+            "total_revenue": total_revenue,
+            "order_count": len(order),
+        }
+    except SQLAlchemyError as e:
+        error = str(e.__dict__['orig'])
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
