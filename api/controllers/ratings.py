@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 def create(db: Session, request):
     new_item = model.Ratings(
         customers_id=request.customers_id,
+        menu_id=request.menu_id,
         customers_name=request.customers_name,
         review_text=request.review_text,
         rating=request.rating
@@ -24,9 +25,12 @@ def create(db: Session, request):
     return new_item
 
 
-def read_all(db: Session):
+def read_all(db: Session, menu_id: int = None):
     try:
-        result = db.query(model.Ratings).all()
+        query = db.query(model.Ratings)
+        if menu_id:
+            query = query.filter(model.Ratings.menu_id == menu_id)
+        result = query.all()
     except SQLAlchemyError as e:
         error = str(e.__dict__['orig'])
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)

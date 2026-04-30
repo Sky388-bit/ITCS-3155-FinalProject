@@ -7,8 +7,12 @@ class Ratings(Base):
     __tablename__ = 'ratings'
     id = Column(Integer, primary_key=True)
     customers_id = Column(Integer, ForeignKey('customers.id'))
+    menu_id = Column(Integer, ForeignKey('menu.id'))
     #customers_id = Column(Integer)
     customers_name = Column(String(100))
     review_text = Column(String(300))
     rating = Column(Integer)
+
+    customer = relationship("Customers", backref="ratings")
+    menu = relationship("Menu", backref="ratings")
 

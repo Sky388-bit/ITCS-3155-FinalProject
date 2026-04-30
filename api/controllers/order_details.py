@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Response, Depends
-from ..models import order_details as model
+from ..models import order_details as model, recipes, resources, menu, orders
 from sqlalchemy.exc import SQLAlchemyError
 
 
 def create(db: Session, request):
+
     new_item = model.OrderDetail(
         order_id=request.order_id,
         menu_id=request.menu_id,
@@ -13,6 +14,11 @@ def create(db: Session, request):
 
     try:
         db.add(new_item)
+        # Update Order Total
+        dish = db.query(menu.Menu).filter(menu.Menu.id == request.menu_id).first()
+        order = db.query(orders.Order).filter(orders.Order.id == request.order_id).first()
+        if order and dish:
+            order.total_price = (order.total_price or 0) + (dish.price * request.amount)
         db.commit()
         db.refresh(new_item)
     except SQLAlchemyError as e:
