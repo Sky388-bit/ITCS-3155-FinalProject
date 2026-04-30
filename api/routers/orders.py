@@ -29,8 +29,13 @@ def get_revenue_report(menu_id: Optional[int] = None, start_date: Optional[datet
     else:
         return controller.get_total_revenue(db=db, start_date=start_date, end_date=end_date)
 
+@router.get("/track/{tracking_number}", response_model=schema.Order)
+def read_one_tracking_number(tracking_number: str, db: Session = Depends(get_db)):
+    return controller.read_one_by_tracking_number(db, tracking_number=tracking_number)
+
+
 @router.get("/{item_id}", response_model=schema.Order)
-def read_one(item_id: int, db: Session = Depends(get_db)):
+def read_one_item_id(item_id: int, db: Session = Depends(get_db)):
     return controller.read_one(db, item_id=item_id)
 
 
