@@ -36,6 +36,15 @@ def test_create_guest_order(db_session):
     assert created_order.order_type == "Takeout"
 
 def test_create_payment(db_session):
+    # Mock order existence check
+    mock_order = order_model.Order(id=1, total_price=10.00, order_status="Placed")
+    
+    # Set up the query mock to return the mock_order when .first() is called
+    # and an empty list when .all() is called.
+    query_mock = db_session.query.return_value.filter.return_value
+    query_mock.first.return_value = mock_order
+    query_mock.all.return_value = []
+
     # Sample payment data
     payment_data = {
         "transaction_status": "Success",
@@ -46,9 +55,9 @@ def test_create_payment(db_session):
 
     payment_object = payment_model.PaymentInfo(**payment_data)
 
-
     created_payment = payment_controller.create(db_session, payment_object)
 
     assert created_payment is not None
     assert created_payment.amount == 10.00
     assert created_payment.transaction_status == "Success"
+    assert mock_order.order_status == "Paid"
