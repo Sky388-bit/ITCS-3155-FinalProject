@@ -21,7 +21,6 @@ def test_create_guest_order(db_session):
         "customers_phone": "123-456-7890",
         "order_type": "Takeout",
         "order_status": "Cart",
-        "tracking_number": "TRK-001"
     }
 
 
@@ -32,8 +31,11 @@ def test_create_guest_order(db_session):
 
 
     assert created_order is not None
+    assert created_order.customers_name == "Guest User"
     assert created_order.customers_email == "guest@example.com"
+    assert created_order.customers_phone == "123-456-7890"
     assert created_order.order_type == "Takeout"
+    assert created_order.order_status == "Cart"
 
 def test_create_payment(db_session):
     # Mock order existence check
