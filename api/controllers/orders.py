@@ -155,3 +155,25 @@ def get_total_revenue(db: Session, start_date=None, end_date=None):
     except SQLAlchemyError as e:
         error = str(e.__dict__['orig'])
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
+
+def get_unpopular_dishes(db: Session, threshold: int = 3):
+    from sqlalchemy import func
+    try:
+        results = (db.query(
+            menu_model.Menu.id,
+            menu_model.Menu.dish_name,
+            func.coalesce(func.sum(detail_model.OrderDetail.amount), 0).label('total_sold')
+        )
+        .outerjoin(detail_model.OrderDetail, menu_model.Menu.id == detail_model.OrderDetail.menu_id)
+        .group_by(menu_model.Menu.id)
+        .having(func.coalesce(func.sum(detail_model.OrderDetail.amount), 0) < threshold)
+        .order_by('total_sold')
+        .all())
+
+        return [
+            {"dish_id": r.id, "dish_name": r.dish_name, "total_sold": int(r.total_sold)}
+            for r in results
+        ]
+    except SQLAlchemyError as e:
+        error = str(e.__dict__['orig'])
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)

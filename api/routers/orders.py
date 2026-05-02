@@ -29,6 +29,10 @@ def get_revenue_report(menu_id: Optional[int] = None, start_date: Optional[datet
     else:
         return controller.get_total_revenue(db=db, start_date=start_date, end_date=end_date)
 
+@router.get("/revenue/unpopular")
+def get_unpopular_report(threshold: int = 3, db: Session = Depends(get_db)):
+    return controller.get_unpopular_dishes(db=db, threshold=threshold)
+
 @router.get("/track/{tracking_number}", response_model=schema.Order)
 def read_one_tracking_number(tracking_number: str, db: Session = Depends(get_db)):
     return controller.read_one_by_tracking_number(db, tracking_number=tracking_number)
