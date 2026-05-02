@@ -23,7 +23,7 @@ def create(db: Session, request: schema.MenuCreate):
 
     return new_item
 
-def read_all(db: Session, category: str, query: str = None):
+def read_all(db: Session, category: str = None, query: str = None):
     try:
         db_query = db.query(model.Menu)
         if category:
