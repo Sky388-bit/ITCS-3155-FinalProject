@@ -39,17 +39,18 @@ def read_one(db: Session, resource_id: int):
 
 def update(db: Session, item_id, request):
     try:
-        item = db.query(model.Resource).filter(model.Resource.id == item_id)
-        if not item.first():
+        item = db.query(model.Resource).filter(model.Resource.id == item_id).first()
+        if not item:
             raise HTTPException(status_code=404, detail="Id not found!")
 
         update_data = request.model_dump(exclude_unset=True)
-        item.update(update_data, synchronize_session=False)
+        for key, value in update_data.items():
+            setattr(item, key, value)
         db.commit()
     except SQLAlchemyError as e:
         error = str(e.__dict__['orig'])
         raise HTTPException(status_code=400, detail=error)
-    return item.first()
+    return item
 
 def delete(db: Session, resource_id: int):
     try:

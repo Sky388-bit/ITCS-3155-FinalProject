@@ -54,6 +54,34 @@ def test_read_all_menu(db_session):
     assert result[1].dish_name == "Burger"
 
 
+def test_read_all_menu_filter_category(db_session):
+    mock_items = [
+        model.Menu(id=1, dish_name="Salad", category="Vegetarian")
+    ]
+    # Mock the chain: query().filter().all()
+    db_session.query.return_value.filter.return_value.all.return_value = mock_items
+
+    result = controller.read_all(db_session, category="Vegetarian")
+
+    assert len(result) == 1
+    assert result[0].category == "Vegetarian"
+
+
+def test_read_all_menu_keyword_search(db_session):
+    mock_items = [
+        model.Menu(id=1, dish_name="Cheese Pizza", dish_description="Extra cheesy")
+    ]
+    # Mock the chain for query().filter().all()
+    # Note: .contains() and | operator in filter are harder to mock precisely, 
+    # but mocking the final .all() is sufficient for controller logic test.
+    db_session.query.return_value.filter.return_value.all.return_value = mock_items
+
+    result = controller.read_all(db_session, query="cheese")
+
+    assert len(result) == 1
+    assert "Cheese" in result[0].dish_name
+
+
 def test_read_one_menu_item(db_session):
     mock_item = model.Menu(id=1, dish_name="Pizza", price=Decimal("12.00"))
     db_session.query.return_value.filter.return_value.first.return_value = mock_item
