@@ -10,10 +10,11 @@ class PaymentInfoBase(BaseModel):
 class PaymentInfoCreate(PaymentInfoBase):
     pass
 
-class PaymentInfoUpdate(PaymentInfoBase):
+class PaymentInfoUpdate(BaseModel):
     transaction_status: Optional[str] = None
     payment_type: Optional[str] = None
     amount: Optional[float] = None
+    order_id: Optional[int] = None
 
 class PaymentInfo(PaymentInfoBase):
     id: int
