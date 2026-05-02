@@ -5,7 +5,16 @@ from sqlalchemy.exc import SQLAlchemyError
 
 
 def create(db: Session, request):
-
+    # Find and deduct resources if possible
+    recipe_items = db.query(recipes.Recipe).filter(recipes.Recipe.menu_id == request.menu_id).all()
+    for item in recipe_items:
+        resource = db.query(resources.Resource).filter(resources.Resource.id == item.resource_id).first()
+        if not resource:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Id not found!")
+        if resource.amount < item.amount * request.amount:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Not enough {resource.item} in stock.")
+        else:
+            resource.amount -= item.amount * request.amount
     new_item = model.OrderDetail(
         order_id=request.order_id,
         menu_id=request.menu_id,
