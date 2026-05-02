@@ -8,3 +8,4 @@ class Promotions(Base):
     id = Column(Integer, primary_key=True)
     promotions_discount = Column(Integer, nullable=False)
     promotions_name = Column(String(50), nullable=False)
+    expiration_date = Column(DATETIME, nullable=True)

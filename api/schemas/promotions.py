@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class PromotionsBase(BaseModel):
     promotions_discount: int
     promotions_name: str
+    expiration_date: Optional[datetime] = None
 
 
 class PromotionsCreate(PromotionsBase):
@@ -16,6 +17,7 @@ class PromotionsCreate(PromotionsBase):
 class PromotionsUpdate(BaseModel):
     promotions_discount: Optional[int] = None
     promotions_name: Optional[str] = None
+    expiration_date: Optional[datetime] = None
 
 
 class Promotions(PromotionsBase):
