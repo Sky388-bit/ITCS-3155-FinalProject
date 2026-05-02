@@ -14,8 +14,8 @@ class PromotionsCreate(PromotionsBase):
 
 
 class PromotionsUpdate(BaseModel):
-    promotions_discount: int
-    promotions_name: str
+    promotions_discount: Optional[int] = None
+    promotions_name: Optional[str] = None
 
 
 class Promotions(PromotionsBase):
