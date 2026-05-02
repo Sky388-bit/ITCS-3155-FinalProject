@@ -13,11 +13,11 @@ class MenuCreate(MenuBase):
     pass
 
 class MenuUpdate(BaseModel):
-    dish_name: Optional[str]
-    dish_description: Optional[str]
-    price: Optional[Decimal]
-    calories: Optional[int]
-    category: Optional[str]
+    dish_name: Optional[str] = None
+    dish_description: Optional[str] = None
+    price: Optional[Decimal] = None
+    calories: Optional[int] = None
+    category: Optional[str] = None
 
 class Menu(MenuBase):
     id: int
