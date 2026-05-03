@@ -208,7 +208,7 @@ def test_add_favorite_order(db_session):
             return type('obj', (object,), {'all': lambda: []})()
         return mock_query_filter
     
-    db_session.query.return_value.filter.return_value.first.return_value = mock_customer
+    db_session.query.return_value.filter.return_value.first.side_effect = [mock_customer, mock_order, None]
     
     result = controller.add_favorite_order(db=db_session, customer_id=1, order_id=1)
 
@@ -332,14 +332,10 @@ def test_check_birthday_reward_not_today(db_session):
         birthday=date(1990, 1, 1),
         reward_points=0
     )
-    db_session.query.return_value.filter.return_value.first.return_value = mock_customer
-
     with pytest.raises(HTTPException) as exc_info:
         controller.check_birthday_reward(db=db_session, customer_id=1)
+    assert exc_info.value.status_code == 400
     assert "Today is not the customer's birthday" in exc_info.value.detail
-
-    assert exc_info.value.status_code == 404
-    assert exc_info.value.detail == "Id not found!"
 
 def test_delete_customer_not_found(db_session):
     db_session.query.return_value.filter.return_value.first.return_value = None

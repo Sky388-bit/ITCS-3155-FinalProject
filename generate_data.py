@@ -6,9 +6,10 @@ import random
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
 
 from api.dependencies.database import SessionLocal, engine
-from api.models import model_loader, customers, menu, orders, order_details, payment_info, promotions, ratings, recipes, resources
+from api.models import model_loader, customers, menu, orders, order_details, payment_info, promotions, ratings, recipes, resources, favorite_orders, rewards
 from api.controllers.orders import generate_tracking_number
-from datetime import datetime, timedelta
+from api.dependencies.security import hash_password
+from datetime import datetime, timedelta, date
 from decimal import Decimal
 
 def generate_data():
@@ -64,14 +65,25 @@ def generate_data():
 
         # 4. Customers
         print("Adding customers...")
+        # Today's date for birthday demo
+        today = date.today()
         customer_data = [
-            ("John", "Doe", "john@example.com", "555-0101", "123 Main St"),
-            ("Jane", "Smith", "jane@example.com", "555-0102", "456 Oak Rd"),
-            ("Bob", "Wilson", "bob@example.com", "555-0103", "789 Pine Ln")
+            ("John", "Doe", "john@example.com", "555-0101", "123 Main St", date(1990, today.month, today.day), "pass123"),
+            ("Jane", "Smith", "jane@example.com", "555-0102", "456 Oak Rd", date(1995, 5, 15), "pass456"),
+            ("Bob", "Wilson", "bob@example.com", "555-0103", "789 Pine Ln", date(1985, 12, 10), "pass789")
         ]
-        for f, l, e, p, a in customer_data:
+        for f, l, e, p, a, b, pw in customer_data:
             if not db.query(customers.Customers).filter(customers.Customers.email == e).first():
-                db.add(customers.Customers(first_name=f, last_name=l, email=e, phone=p, address=a))
+                db.add(customers.Customers(
+                    first_name=f, 
+                    last_name=l, 
+                    email=e, 
+                    phone=p, 
+                    address=a, 
+                    birthday=b, 
+                    password=hash_password(pw),
+                    reward_points=random.randint(0, 150)
+                ))
         db.commit()
 
         # 5. Promotions
@@ -82,19 +94,19 @@ def generate_data():
         db.commit()
 
         # 6. Orders (Simulating historical data for reports)
-        print("Generating historical orders...")
+        print("Generating historical orders, rewards, and favorites...")
         custs = db.query(customers.Customers).all()
         menus = db.query(menu.Menu).all()
         
-        # Add 10 varied orders
-        for i in range(10):
+        # Add 15 varied orders
+        for i in range(15):
             c = random.choice(custs)
             m = random.choice(menus)
             qty = random.randint(1, 3)
             price = m.price * qty
             
-            # Scatter dates over the last 30 days
-            order_date = datetime.now() - timedelta(days=random.randint(0, 30), hours=random.randint(0, 23))
+            # Scatter dates over the last 60 days
+            order_date = datetime.now() - timedelta(days=random.randint(0, 60), hours=random.randint(0, 23))
             
             new_order = orders.Order(
                 customers_id=c.id,
@@ -117,6 +129,17 @@ def generate_data():
             # Add payment
             db.add(payment_info.PaymentInfo(transaction_status="Success", payment_type="Credit Card", order_id=new_order.id, amount=price))
             
+            # Add some rewards
+            pts = int(price * 10)  # 10 points per dollar
+            db.add(rewards.Reward(customer_id=c.id, order_id=new_order.id, points_earned=pts, reward_type="purchase"))
+
+            # Add some favorites
+            if random.random() > 0.7:
+                # Check if already favorited to avoid unique constraint issues if any (though model doesn't specify unique)
+                exists = db.query(favorite_orders.FavoriteOrder).filter_by(customer_id=c.id, order_id=new_order.id).first()
+                if not exists:
+                    db.add(favorite_orders.FavoriteOrder(customer_id=c.id, order_id=new_order.id))
+
             # Add some ratings
             if random.random() > 0.5:
                 db.add(ratings.Ratings(customers_id=c.id, menu_id=m.id, customers_name=c.first_name, review_text="Delicious!", rating=random.randint(4, 5)))
