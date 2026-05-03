@@ -18,7 +18,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model_loader.index()
+# Try to create tables, but don't fail if database is unavailable
+try:
+    model_loader.index()
+except Exception as e:
+    print(f"Warning: Could not initialize database tables: {e}")
+    print("The API will still run, but database operations may fail.")
+
 indexRoute.load_routes(app)
 
 
