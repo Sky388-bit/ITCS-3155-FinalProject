@@ -4,6 +4,7 @@ from ..controllers import orders as controller
 from ..main import app
 import pytest
 from ..models import orders as model
+from ..schemas import orders as schema
 from decimal import Decimal
 
 # Create a test client for the app
@@ -151,3 +152,57 @@ def test_get_total_revenue(db_session):
 
     assert result["total_revenue"] == Decimal("80.00")
     assert result["order_count"] == 2
+
+
+def test_create_order_with_promo(db_session, mocker):
+    from ..models import promotions as promo_model
+    from datetime import datetime, timedelta
+
+    # Mock promotion
+    mock_promo = promo_model.Promotions(
+        promotions_name="SAVE10",
+        promotions_discount=10,
+        expiration_date=datetime.now() + timedelta(days=1)
+    )
+    db_session.query.return_value.filter.return_value.first.return_value = mock_promo
+
+    new_order = {
+        "customers_id": 1,
+        "customers_name": "John Doe",
+        "customers_email": "johndoe@gmail.com",
+        "customers_phone": "123-456-7890",
+        "order_type": "Dine-in",
+        "order_status": "Placed",
+        "total_price": 100.0,
+        "promo_code": "SAVE10"
+    }
+    order_data = schema.OrderCreate(**new_order)
+
+    created_order = controller.create(db_session, order_data)
+
+    # 10% discount on 100.0 should be 90.0
+    assert created_order.total_price == 90.0
+
+
+def test_get_unpopular_dishes(db_session, mocker):
+    # Mock results for the aggregated query
+    mock_result1 = mocker.Mock()
+    mock_result1.id = 1
+    mock_result1.dish_name = "Liver"
+    mock_result1.total_sold = 0
+
+    mock_result2 = mocker.Mock()
+    mock_result2.id = 2
+    mock_result2.dish_name = "Brussels Sprouts"
+    mock_result2.total_sold = 1
+
+    mock_results = [mock_result1, mock_result2]
+    
+    # Mock the complex query chain
+    db_session.query.return_value.outerjoin.return_value.group_by.return_value.having.return_value.order_by.return_value.all.return_value = mock_results
+
+    result = controller.get_unpopular_dishes(db_session, threshold=3)
+
+    assert len(result) == 2
+    assert result[0]["dish_name"] == "Liver"
+    assert result[0]["total_sold"] == 0

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, FastAPI, status, Response
 from sqlalchemy.orm import Session
+from typing import Optional
 from ..controllers import menu as controller
 from ..schemas import menu as schema
 from ..dependencies.database import engine, get_db
@@ -18,8 +19,8 @@ def read_one(item_id: int, db: Session = Depends(get_db)):
     return controller.read_one(db=db, item_id=item_id)
 
 @router.get("/", response_model=list[schema.Menu])
-def read_all(db: Session = Depends(get_db)):
-    return controller.read_all(db)
+def read_all(category: Optional[str] = None, query: Optional[str] = None, db: Session = Depends(get_db)):
+    return controller.read_all(db, category=category, query=query)
 
 @router.put("/{item_id}", response_model=schema.Menu)
 def update(item_id: int, request: schema.MenuUpdate, db: Session = Depends(get_db)):

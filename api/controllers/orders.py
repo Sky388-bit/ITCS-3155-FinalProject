@@ -1,8 +1,9 @@
 import uuid
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Response, Depends
-from ..models import orders as model, menu as menu_model, order_details as detail_model
+from ..models import orders as model, menu as menu_model, order_details as detail_model, promotions as promotion_model
 from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime
 
 def generate_tracking_number():
     return f"TRK-{uuid.uuid4().hex[:8].upper()}"
@@ -15,6 +16,19 @@ def create(db: Session, request):
     if request.order_type == "Delivery" and not request.description:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Delivery orders require an address in the description")
+
+    if hasattr(request, "promo_code") and request.promo_code:
+        promo = db.query(promotion_model.Promotions).filter(
+            promotion_model.Promotions.promotions_name == request.promo_code).first()
+
+        if not promo:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Promotion not found!")
+
+        if promo.expiration_date and promo.expiration_date < datetime.now():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Promotion is expired!")
+
+        discount_amount = (float(request.total_price) * (promo.promotions_discount / 100))
+        request.total_price = float(request.total_price) - discount_amount
     new_item = model.Order(
         customers_id=request.customers_id,
         customers_name=request.customers_name,
@@ -138,6 +152,28 @@ def get_total_revenue(db: Session, start_date=None, end_date=None):
             "total_revenue": total_revenue,
             "order_count": len(order),
         }
+    except SQLAlchemyError as e:
+        error = str(e.__dict__['orig'])
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
+
+def get_unpopular_dishes(db: Session, threshold: int = 3):
+    from sqlalchemy import func
+    try:
+        results = (db.query(
+            menu_model.Menu.id,
+            menu_model.Menu.dish_name,
+            func.coalesce(func.sum(detail_model.OrderDetail.amount), 0).label('total_sold')
+        )
+        .outerjoin(detail_model.OrderDetail, menu_model.Menu.id == detail_model.OrderDetail.menu_id)
+        .group_by(menu_model.Menu.id)
+        .having(func.coalesce(func.sum(detail_model.OrderDetail.amount), 0) < threshold)
+        .order_by('total_sold')
+        .all())
+
+        return [
+            {"dish_id": r.id, "dish_name": r.dish_name, "total_sold": int(r.total_sold)}
+            for r in results
+        ]
     except SQLAlchemyError as e:
         error = str(e.__dict__['orig'])
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)

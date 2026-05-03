@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from ..controllers import order_details as controller
 from ..main import app
 import pytest
-from ..models import order_details as model, menu as menu_model, orders as orders_model
+from ..models import order_details as model, menu as menu_model, orders as orders_model, recipes as recipes_model, resources as resources_model
 from ..schemas import order_details as schema
 
 # Create a test client for the app
@@ -32,6 +32,8 @@ def test_create_order_detail(db_session, mocker):
             mock_query.filter.return_value.first.return_value = mock_menu_item
         elif model_class == orders_model.Order:
             mock_query.filter.return_value.first.return_value = mock_order
+        elif model_class == recipes_model.Recipe:
+            mock_query.filter.return_value.all.return_value = []
         return mock_query
 
     db_session.query.side_effect = query_side_effect
@@ -45,6 +47,73 @@ def test_create_order_detail(db_session, mocker):
     assert mock_order.total_price == 20.0
     assert db_session.add.called
     assert db_session.commit.called
+
+
+def test_create_order_detail_deducts_resources(db_session, mocker):
+    order_detail_data = {
+        "order_id": 1,
+        "menu_id": 1,
+        "amount": 2
+    }
+    order_detail_object = schema.OrderDetailCreate(**order_detail_data)
+
+    mock_menu_item = menu_model.Menu(id=1, price=10.0)
+    mock_order = orders_model.Order(id=1, total_price=0.0)
+
+    # Mock Recipe: 1 unit of Flour per dish
+    mock_recipe = recipes_model.Recipe(id=1, menu_id=1, resource_id=1, amount=1)
+    # Mock Resource: 10 units of Flour in stock
+    mock_resource = resources_model.Resource(id=1, item="Flour", amount=10)
+
+    def query_side_effect(model_class):
+        mock_query = mocker.Mock()
+        if model_class == menu_model.Menu:
+            mock_query.filter.return_value.first.return_value = mock_menu_item
+        elif model_class == orders_model.Order:
+            mock_query.filter.return_value.first.return_value = mock_order
+        elif model_class == recipes_model.Recipe:
+            mock_query.filter.return_value.all.return_value = [mock_recipe]
+        elif model_class == resources_model.Resource:
+            mock_query.filter.return_value.first.return_value = mock_resource
+        return mock_query
+
+    db_session.query.side_effect = query_side_effect
+
+    created_detail = controller.create(db_session, order_detail_object)
+
+    # Deduction check: 10 - (1 unit * 2 items) = 8
+    assert mock_resource.amount == 8
+    assert created_detail.amount == 2
+
+
+def test_create_order_detail_insufficient_resources(db_session, mocker):
+    order_detail_data = {
+        "order_id": 1,
+        "menu_id": 1,
+        "amount": 5
+    }
+    order_detail_object = schema.OrderDetailCreate(**order_detail_data)
+
+    # Mock Recipe: 10 units of Flour per dish
+    mock_recipe = recipes_model.Recipe(id=1, menu_id=1, resource_id=1, amount=10)
+    # Mock Resource: 10 units of Flour in stock (Not enough for 5 items * 10 units)
+    mock_resource = resources_model.Resource(id=1, item="Flour", amount=10)
+
+    def query_side_effect(model_class):
+        mock_query = mocker.Mock()
+        if model_class == recipes_model.Recipe:
+            mock_query.filter.return_value.all.return_value = [mock_recipe]
+        elif model_class == resources_model.Resource:
+            mock_query.filter.return_value.first.return_value = mock_resource
+        return mock_query
+
+    db_session.query.side_effect = query_side_effect
+
+    with pytest.raises(HTTPException) as exc_info:
+        controller.create(db_session, order_detail_object)
+
+    assert exc_info.value.status_code == 404
+    assert "Not enough Flour in stock" in exc_info.value.detail
 
 
 def test_read_all_order_details(db_session):

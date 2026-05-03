@@ -30,6 +30,20 @@ def test_create_promotion(db_session):
     assert db_session.commit.called
 
 
+def test_create_promotion_with_expiration(db_session):
+    from datetime import datetime, timedelta
+    expiration = datetime.now() + timedelta(days=7)
+    promotion_data = {
+        "promotions_discount": 20,
+        "promotions_name": "Weekly Special",
+        "expiration_date": expiration
+    }
+    promotion_object = schema.PromotionsCreate(**promotion_data)
+    created_promotion = controller.create(db_session, promotion_object)
+
+    assert created_promotion.expiration_date == expiration
+
+
 def test_read_all_promotions(db_session):
     mock_promotions = [
         model.Promotions(id=1, promotions_name="Sale 1", promotions_discount=10),

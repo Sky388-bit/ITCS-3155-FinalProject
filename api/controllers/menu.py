@@ -23,9 +23,17 @@ def create(db: Session, request: schema.MenuCreate):
 
     return new_item
 
-def read_all(db: Session):
+def read_all(db: Session, category: str = None, query: str = None):
     try:
-        items = db.query(model.Menu).all()
+        db_query = db.query(model.Menu)
+        if category:
+            db_query = db_query.filter(model.Menu.category == category)
+
+        if query:
+            db_query = db_query.filter(
+                (model.Menu.dish_name.contains(query)) | (model.Menu.dish_description.contains(query))
+            )
+        items = db_query.all()
     except SQLAlchemyError as e:
         raise e
 
