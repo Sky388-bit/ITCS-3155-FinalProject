@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DECIMAL, DATETIME
+from sqlalchemy import Column, ForeignKey, Integer, String, DECIMAL, DATETIME, text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from ..dependencies.database import Base
@@ -12,7 +12,7 @@ class Order(Base):
     customers_name = Column(String(100))
     tracking_number = Column(String(100), nullable=False)
     order_status = Column(String(100), nullable=False)
-    order_date = Column(DATETIME, nullable=False, server_default=str(datetime.now()))
+    order_date = Column(DATETIME, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
     description = Column(String(300))
     total_price = Column(DECIMAL(10,2))
     order_type = Column(String(100), nullable=False)
